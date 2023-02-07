@@ -12,7 +12,7 @@ require("./db/connection");
 var songPlaying = "";
 var playing = false;
 
-app.use(cors());
+// app.use(cors());
 app.use(express.json());
 app.use(chat);
 app.use(player);
