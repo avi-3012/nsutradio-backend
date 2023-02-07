@@ -42,7 +42,6 @@ async function updatePlaylist(user, song, duration) {
 }
 
 async function checkPlay() {
-  songPlaying = "";
   console.log("checking play");
   if (!playing) {
     console.log("not playing");
@@ -60,7 +59,7 @@ async function checkPlay() {
 
 async function playSong(song, duration) {
   playing = true;
-  duration = duration;
+  duration = duration + 5;
   console.log("playing song");
   var count = 0;
   songPlaying = song;
