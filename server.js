@@ -1,6 +1,6 @@
 const express = require("express");
 const app = express();
-const port = process.env.PORT || 3000;
+const port = process.env.PORT || 8080;
 const cors = require("cors");
 const chat = require("./routes/chat");
 const player = require("./routes/player");
@@ -10,9 +10,10 @@ const Playlist = require("./db/data.model");
 const room = 1111;
 require("./db/connection");
 var songPlaying = "";
+var songPosition = "0";
 var playing = false;
 
-// app.use(cors());
+app.use(cors());
 app.use(express.json());
 app.use(chat);
 app.use(player);
@@ -65,13 +66,16 @@ async function playSong(song, duration) {
   songPlaying = song;
   let interval = setInterval(async () => {
     count += 1;
+    songPosition = `${count + 2}`;
     console.log("playing song", count);
     if (count === duration) {
+      songPosition = "0";
       clearInterval(interval);
     }
   }, 1000);
   setTimeout(async () => {
     songPlaying = "";
+    songPosition = "0";
     io.to(room).emit("update_song");
     console.log("deleting song");
     await Playlist.deleteOne({}, { sort: { _id: 1 } });
@@ -85,8 +89,8 @@ async function playSong(song, duration) {
 
 io.on("connection", (socket) => {
   console.log(socket.id);
-  socket.on("join", () => {
-    socket.join(room);
+  socket.on("join", async () => {
+    await socket.join(room);
     console.log(socket.id, "joined room", room);
   });
   socket.on("message", (data) => {
@@ -115,6 +119,12 @@ player.get("/api/song", (req, res) => {
   console.log("song requested");
   console.log(songPlaying);
   res.send(songPlaying);
+});
+
+player.get("/api/song/position", (req, res) => {
+  console.log("song requested");
+  console.log(songPosition);
+  res.send(songPosition);
 });
 
 // listen (start app with node server.js) ======================================
