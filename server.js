@@ -66,7 +66,7 @@ async function playSong(song, duration) {
   songPlaying = song;
   let interval = setInterval(async () => {
     count += 1;
-    songPosition = `${count + 2}`;
+    songPosition = `${count}`;
     console.log("playing song", count);
     if (count === duration) {
       songPosition = "0";
