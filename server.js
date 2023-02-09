@@ -1,6 +1,6 @@
 const express = require("express");
 const app = express();
-const port = process.env.PORT || 3000;
+const port = process.env.PORT || 8080;
 const cors = require("cors");
 const chat = require("./routes/chat");
 const player = require("./routes/player");
@@ -13,7 +13,7 @@ var songPlaying = "";
 var songPosition = "0";
 var playing = false;
 
-// app.use(cors());
+app.use(cors());
 app.use(express.json());
 app.use(chat);
 app.use(player);
@@ -27,14 +27,16 @@ const io = new Server(server, {
 });
 
 //functions
-async function updatePlaylist(user, song, duration) {
+async function updatePlaylist(user, song, duration, title) {
   console.log("updating playlist");
   try {
     await Playlist.create({
       name: user,
       song: song,
       duration: duration,
+      title: title,
     });
+    io.to(room).emit("playlist_update");
     await checkPlay();
     // playSong(song, duration);
     // io.to(room).emit("update_song");
@@ -82,6 +84,7 @@ async function playSong(song, duration) {
     playing = false;
     checkPlay();
     console.log("song ended");
+    io.to(room).emit("playlist_update");
   }, duration * 1000);
 }
 
@@ -100,10 +103,10 @@ io.on("connection", (socket) => {
 
   socket.on("send_song", (data) => {
     console.log(
-      `User: ${data[0]} sent song: ${data[1]} of duration: ${data[2]}`
+      `User: ${data[0]} sent song: ${data[1]} of duration: ${data[2]} title: ${data[3]}`
     );
     //update playlist
-    updatePlaylist(data[0], data[1], data[2]);
+    updatePlaylist(data[0], data[1], data[2], data[3]);
 
     song = data[1];
     // io.to(room).emit("update_song");
@@ -115,16 +118,16 @@ io.on("connection", (socket) => {
 
 // routes ======================================================================
 
-player.get("/api/song", (req, res) => {
+player.get("/api/song", async (req, res) => {
+  const data = await Playlist.find();
+  var songData = { song: songPlaying, position: songPosition, playlist: data };
   console.log("song requested");
-  console.log(songPlaying);
-  res.send(songPlaying);
+  res.send(songData);
 });
 
-player.get("/api/song/position", (req, res) => {
-  console.log("song requested");
-  console.log(songPosition);
-  res.send(songPosition);
+player.get("/api/playlist", async (req, res) => {
+  const data = await Playlist.find();
+  res.send(data);
 });
 
 // listen (start app with node server.js) ======================================
