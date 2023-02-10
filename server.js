@@ -1,6 +1,6 @@
 const express = require("express");
 const app = express();
-const port = process.env.PORT || 8080;
+const port = process.env.PORT || 3000;
 const cors = require("cors");
 const chat = require("./routes/chat");
 const player = require("./routes/player");
@@ -15,7 +15,7 @@ var playing = false;
 var playlist = [];
 var users = 0;
 
-app.use(cors());
+// app.use(cors());
 app.use(express.json());
 app.use(chat);
 app.use(player);
