@@ -1,6 +1,6 @@
 const express = require("express");
 const app = express();
-const port = process.env.PORT || 3000;
+const port = process.env.PORT || 8080;
 const cors = require("cors");
 const chat = require("./routes/chat");
 const player = require("./routes/player");
@@ -13,8 +13,9 @@ var songPlaying = "";
 var songPosition = "0";
 var playing = false;
 var playlist = [];
+var users = 0;
 
-// app.use(cors());
+app.use(cors());
 app.use(express.json());
 app.use(chat);
 app.use(player);
@@ -31,7 +32,7 @@ setInterval(async () => {
   const data = songPlaying;
   const data2 = songPosition;
   const data3 = await Playlist.find();
-  const data4 = Date.now();
+  const data4 = [Date.now(), users];
   playlist = data3;
   io.to(room).emit("fetch_song", data);
   io.to(room).emit("fetch_position", data2);
@@ -106,6 +107,7 @@ async function playSong(song, duration) {
 //playlist
 
 io.on("connection", (socket) => {
+  users += 1;
   console.log(socket.id);
   socket.on("join", async () => {
     await socket.join(room);
@@ -131,6 +133,7 @@ io.on("connection", (socket) => {
     io.to(room).emit("playlist_update", playlist);
   });
   socket.on("disconnect", () => {
+    users -= 1;
     console.log("user disconnected");
   });
 });
